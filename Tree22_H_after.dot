@@ -1,0 +1,50 @@
+graph "Tree22 — H (spanner)" {
+  layout=dot;
+  rankdir=TB;
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=11];
+
+  v0 [label="v0"];
+  v1 [label="v1"];
+  v2 [label="v2"];
+  v3 [label="v3"];
+  v4 [label="v4"];
+  v5 [label="v5"];
+  v6 [label="v6"];
+  v7 [label="v7"];
+  v8 [label="v8"];
+  v9 [label="v9"];
+  v10 [label="v10"];
+  v11 [label="v11"];
+  v12 [label="v12"];
+  v13 [label="v13"];
+  v14 [label="v14"];
+  v15 [label="v15"];
+  v16 [label="v16"];
+  v17 [label="v17"];
+  v18 [label="v18"];
+  v19 [label="v19"];
+  v20 [label="v20"];
+  v21 [label="v21"];
+
+  v0 -- v1 [label="4", color=red, penwidth=3];
+  v1 -- v2 [label="5", color=red, penwidth=3];
+  v0 -- v3 [label="6", color=red, penwidth=3];
+  v1 -- v4 [label="19", color=red, penwidth=3];
+  v4 -- v5 [label="14", color=red, penwidth=3];
+  v2 -- v6 [label="3", color=red, penwidth=3];
+  v0 -- v7 [label="13", color=red, penwidth=3];
+  v2 -- v8 [label="13", color=red, penwidth=3];
+  v6 -- v9 [label="11", color=red, penwidth=3];
+  v3 -- v10 [label="10", color=red, penwidth=3];
+  v10 -- v11 [label="4", color=red, penwidth=3];
+  v2 -- v12 [label="14", color=red, penwidth=3];
+  v12 -- v13 [label="2", color=red, penwidth=3];
+  v0 -- v14 [label="19", color=red, penwidth=3];
+  v7 -- v15 [label="7", color=red, penwidth=3];
+  v9 -- v16 [label="17", color=red, penwidth=3];
+  v4 -- v17 [label="6", color=red, penwidth=3];
+  v11 -- v18 [label="8", color=red, penwidth=3];
+  v3 -- v19 [label="14", color=red, penwidth=3];
+  v13 -- v20 [label="5", color=red, penwidth=3];
+  v20 -- v21 [label="6", color=red, penwidth=3];
+}

@@ -1,4 +1,7 @@
 import java.util.*;
+import java.io.*;
+import java.awt.Desktop;
+import java.net.URI;
 
 /**
  * Correctness check of the Greedy Spanner Algorithm (Althöfer et al., 1993)
@@ -200,6 +203,79 @@ public class K6 {
     }
 
     // -------------------------------------------------------------------------
+    // DOT export — generates GraphViz source for before / after
+    // -------------------------------------------------------------------------
+
+    /**
+     * Writes a .dot file representing the graph described by weightMatrix.
+     * Edges present in spannerEdges are drawn thick+red; all others thin+grey.
+     * Pass null for spannerEdges to draw every edge the same colour (used for G).
+     */
+    static void exportDot(int[][] wG, List<int[]> allEdges,
+                          List<int[]> spannerEdges,
+                          String title, String filename) throws IOException {
+
+        // Build a set of spanner edge keys for fast lookup
+        Set<String> spannerSet = new HashSet<>();
+        if (spannerEdges != null)
+            for (int[] e : spannerEdges)
+                spannerSet.add(Math.min(e[0],e[1]) + "_" + Math.max(e[0],e[1]));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("graph \"").append(title).append("\" {\n");
+        sb.append("  layout=circo;\n");                   // circular layout looks great for K6
+        sb.append("  overlap=false;\n");
+        sb.append("  label=\"").append(title).append("\";\n");
+        sb.append("  fontsize=16;\n");
+        sb.append("  labelloc=t;\n\n");
+
+        // Vertices — numbered v0..v5
+        sb.append("  // vertices\n");
+        for (int i = 0; i < N; i++)
+            sb.append(String.format("  %d [label=\"v%d\", shape=circle, style=filled," +
+                    " fillcolor=lightblue, fontsize=13];\n", i, i));
+        sb.append("\n");
+
+        // Edges
+        sb.append("  // edges\n");
+        List<int[]> sorted = new ArrayList<>(allEdges);
+        sorted.sort(Comparator.comparingInt(e -> e[2]));
+
+        for (int[] e : sorted) {
+            int u = e[0], v = e[1], w = e[2];
+            String key = Math.min(u,v) + "_" + Math.max(u,v);
+            boolean inSpanner = (spannerEdges == null) || spannerSet.contains(key);
+
+            if (inSpanner) {
+                // Spanner edge: thick, red, weight label visible
+                sb.append(String.format(
+                        "  %d -- %d [label=\"%d\", color=red, penwidth=3.0, fontcolor=red, fontsize=11];\n",
+                        u, v, w));
+            } else {
+                // Removed edge: thin, dashed, grey — still visible so user can see what was pruned
+                sb.append(String.format(
+                        "  %d -- %d [label=\"%d\", color=grey, style=dashed," +
+                        " penwidth=0.8, fontcolor=grey, fontsize=9];\n",
+                        u, v, w));
+            }
+        }
+        sb.append("}\n");
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter(filename))) {
+            pw.print(sb);
+        }
+        System.out.printf("  Saved: %s%n", filename);
+    }
+
+    static void openBrowser() {
+        try {
+            if (Desktop.isDesktopSupported())
+                Desktop.getDesktop().browse(
+                        new URI("https://dreampuf.github.io/GraphvizOnline/"));
+        } catch (Exception ignored) {}
+    }
+
+    // -------------------------------------------------------------------------
     // Main
     // -------------------------------------------------------------------------
 
@@ -280,5 +356,40 @@ public class K6 {
         System.out.println("  Verification:  dist_H(u,v)  <=  " + STRETCH + " * dist_G(u,v)");
         System.out.println("------------------------------------------------------------");
         verify(gDist, hDist, K);
+
+        // ── Step 7: Export DOT files for visual inspection ──
+        System.out.println("------------------------------------------------------------");
+        System.out.println("  Exporting DOT files for GraphViz visualization");
+        System.out.println("------------------------------------------------------------");
+
+        // Collect all edges of G
+        List<int[]> allEdges = new ArrayList<>();
+        for (int i = 0; i < N; i++)
+            for (int j = i + 1; j < N; j++)
+                allEdges.add(new int[]{i, j, wG[i][j]});
+
+        try {
+            // BEFORE: full K6, all edges grey (no spanner highlight)
+            exportDot(wG, allEdges, null,
+                    "G = K6  (BEFORE: all " + allEdges.size() + " edges)",
+                    "K6_G_before.dot");
+
+            // AFTER: K6 with spanner edges red, removed edges dashed grey
+            exportDot(wG, allEdges, spannerEdges,
+                    "H = 3-spanner  (AFTER: " + spannerEdges.size() + " edges kept, red)",
+                    "K6_H_after.dot");
+
+            System.out.println();
+            System.out.println("  How to view:");
+            System.out.println("  1. Open K6_G_before.dot  in Notepad — copy all text.");
+            System.out.println("  2. Paste at  https://dreampuf.github.io/GraphvizOnline/");
+            System.out.println("  3. Repeat with  K6_H_after.dot  to see the spanner.");
+            System.out.println("     (Red thick edges = kept in H | Dashed grey = removed)");
+            System.out.println();
+
+            openBrowser();
+        } catch (IOException ex) {
+            System.out.println("  Could not write DOT files: " + ex.getMessage());
+        }
     }
 }

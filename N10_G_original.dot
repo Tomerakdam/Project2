@@ -1,0 +1,48 @@
+graph "G original — N=10, 30 edges  (blue = MST)" {
+  layout=neato;
+  overlap=false;
+  sep="+18";
+  node [shape=circle, style=filled, fillcolor=lightyellow, fontsize=14, width=0.55, fixedsize=true];
+
+  v1 [label="v1"];
+  v2 [label="v2"];
+  v3 [label="v3"];
+  v4 [label="v4"];
+  v5 [label="v5"];
+  v6 [label="v6"];
+  v7 [label="v7"];
+  v8 [label="v8"];
+  v9 [label="v9"];
+  v10 [label="v10"];
+
+  v1 -- v3 [label="30", color=red,  penwidth=2, fontsize=10];
+  v1 -- v5 [label="31", color=red,  penwidth=2, fontsize=10];
+  v1 -- v7 [label="31", color=red,  penwidth=2, fontsize=10];
+  v1 -- v9 [label="7", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v2 -- v3 [label="45", color=red,  penwidth=2, fontsize=10];
+  v2 -- v4 [label="44", color=red,  penwidth=2, fontsize=10];
+  v2 -- v5 [label="27", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v2 -- v8 [label="32", color=red,  penwidth=2, fontsize=10];
+  v3 -- v4 [label="14", color=red,  penwidth=2, fontsize=10];
+  v3 -- v5 [label="27", color=red,  penwidth=2, fontsize=10];
+  v3 -- v6 [label="28", color=red,  penwidth=2, fontsize=10];
+  v3 -- v7 [label="5", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v3 -- v8 [label="7", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v3 -- v9 [label="33", color=red,  penwidth=2, fontsize=10];
+  v4 -- v5 [label="4", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v4 -- v6 [label="38", color=red,  penwidth=2, fontsize=10];
+  v4 -- v7 [label="11", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v4 -- v8 [label="20", color=red,  penwidth=2, fontsize=10];
+  v4 -- v10 [label="12", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v5 -- v6 [label="8", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v5 -- v7 [label="33", color=red,  penwidth=2, fontsize=10];
+  v5 -- v9 [label="20", color=red,  penwidth=2, fontsize=10];
+  v5 -- v10 [label="44", color=red,  penwidth=2, fontsize=10];
+  v6 -- v7 [label="27", color=red,  penwidth=2, fontsize=10];
+  v6 -- v8 [label="28", color=red,  penwidth=2, fontsize=10];
+  v6 -- v10 [label="41", color=red,  penwidth=2, fontsize=10];
+  v7 -- v8 [label="24", color=red,  penwidth=2, fontsize=10];
+  v7 -- v10 [label="26", color=red,  penwidth=2, fontsize=10];
+  v8 -- v9 [label="47", color=red,  penwidth=2, fontsize=10];
+  v9 -- v10 [label="1", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+}

@@ -1,0 +1,48 @@
+graph "H_k2 (3-spanner)  blue=MST  red=extra  grey=removed" {
+  layout=neato;
+  overlap=false;
+  sep="+18";
+  node [shape=circle, style=filled, fillcolor=lightyellow, fontsize=14, width=0.55, fixedsize=true];
+
+  v1 [label="v1"];
+  v2 [label="v2"];
+  v3 [label="v3"];
+  v4 [label="v4"];
+  v5 [label="v5"];
+  v6 [label="v6"];
+  v7 [label="v7"];
+  v8 [label="v8"];
+  v9 [label="v9"];
+  v10 [label="v10"];
+
+  v1 -- v3 [label="30", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v1 -- v5 [label="31", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v1 -- v7 [label="31", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v1 -- v9 [label="7", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v2 -- v3 [label="45", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v2 -- v4 [label="44", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v2 -- v5 [label="27", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v2 -- v8 [label="32", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v3 -- v4 [label="14", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v3 -- v5 [label="27", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v3 -- v6 [label="28", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v3 -- v7 [label="5", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v3 -- v8 [label="7", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v3 -- v9 [label="33", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v4 -- v5 [label="4", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v4 -- v6 [label="38", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v4 -- v7 [label="11", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v4 -- v8 [label="20", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v4 -- v10 [label="12", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v5 -- v6 [label="8", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+  v5 -- v7 [label="33", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v5 -- v9 [label="20", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v5 -- v10 [label="44", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v6 -- v7 [label="27", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v6 -- v8 [label="28", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v6 -- v10 [label="41", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v7 -- v8 [label="24", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v7 -- v10 [label="26", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v8 -- v9 [label="47", color="#bbbbbb", style=dashed, penwidth=1, fontsize=9, fontcolor="#999999"];
+  v9 -- v10 [label="1", color=blue, penwidth=4, fontcolor=blue, fontsize=11];
+}

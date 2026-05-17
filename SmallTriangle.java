@@ -1,4 +1,7 @@
 import java.util.*;
+import java.io.*;
+import java.awt.Desktop;
+import java.net.URI;
 
 /**
  * Greedy Spanner Algorithm (Althöfer et al., 1993)
@@ -21,6 +24,55 @@ import java.util.*;
  *   the stretch bound of 6.  H is a path: 1-2-3.
  */
 public class SmallTriangle {
+
+    // -------------------------------------------------------------------------
+    // DOT export
+    // -------------------------------------------------------------------------
+
+    static void exportDot(List<int[]> allEdges, List<int[]> spannerEdges,
+                          String title, String filename) throws IOException {
+        Set<String> spannerSet = new HashSet<>();
+        if (spannerEdges != null)
+            for (int[] e : spannerEdges)
+                spannerSet.add(Math.min(e[0],e[1]) + "_" + Math.max(e[0],e[1]));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("graph \"").append(title).append("\" {\n");
+        sb.append("  layout=circo;\n");
+        sb.append("  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=14];\n\n");
+
+        // Vertices
+        for (int i = 0; i < N; i++)
+            sb.append("  v").append(i+1).append(" [label=\"v").append(i+1).append("\"];\n");
+        sb.append("\n");
+
+        // Edges
+        for (int[] e : allEdges) {
+            int u = e[0], v = e[1], w = e[2];
+            String key = Math.min(u,v) + "_" + Math.max(u,v);
+            boolean inSpanner = (spannerEdges == null) || spannerSet.contains(key);
+            sb.append("  v").append(u+1).append(" -- v").append(v+1);
+            sb.append(" [label=\"").append(w).append("\"");
+            if (inSpanner) sb.append(", color=red, penwidth=3");
+            else           sb.append(", color=grey, style=dashed, penwidth=1");
+            sb.append("];\n");
+        }
+        sb.append("}\n");
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter(filename))) {
+            pw.print(sb);
+        }
+        System.out.println("  DOT file written: " + filename);
+        System.out.println("  Paste at: https://dreampuf.github.io/GraphvizOnline/");
+        System.out.println();
+    }
+
+    static void openBrowser(String url) {
+        try {
+            if (Desktop.isDesktopSupported())
+                Desktop.getDesktop().browse(new URI(url));
+        } catch (Exception ignored) {}
+    }
 
     // Nodes stored as 0-indexed internally, displayed as v1/v2/v3
     static final int N   = 3;
@@ -177,7 +229,7 @@ public class SmallTriangle {
     // Main
     // -------------------------------------------------------------------------
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         final int K       = 2;
         final int STRETCH = 2 * K - 1;
 
@@ -234,5 +286,13 @@ public class SmallTriangle {
 
         // Verification
         verify(gDist, hDist, K);
+
+        // DOT visualisation
+        System.out.println("------------------------------------------------------------");
+        System.out.println("  Exporting DOT visualisation files ...");
+        System.out.println("------------------------------------------------------------");
+        exportDot(gEdges, null,         "SmallTriangle — G (original)", "SmallTriangle_G_before.dot");
+        exportDot(gEdges, spannerEdges, "SmallTriangle — H (spanner)",  "SmallTriangle_H_after.dot");
+        openBrowser("https://dreampuf.github.io/GraphvizOnline/");
     }
 }

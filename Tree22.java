@@ -1,4 +1,7 @@
 import java.util.*;
+import java.io.*;
+import java.awt.Desktop;
+import java.net.URI;
 
 /**
  * Greedy Spanner Algorithm (Althöfer et al., 1993) — Test on a random Tree, n=22
@@ -18,6 +21,54 @@ import java.util.*;
  *   Since H = G:  dist_H = dist_G  for all pairs  →  stretch ratio = 1.0 everywhere.
  */
 public class Tree22 {
+
+    // -------------------------------------------------------------------------
+    // DOT export  (uses "dot" layout — hierarchical, ideal for trees)
+    // -------------------------------------------------------------------------
+
+    static void exportDot(List<int[]> allEdges, List<int[]> spannerEdges,
+                          String title, String filename) throws IOException {
+        Set<String> spannerSet = new HashSet<>();
+        if (spannerEdges != null)
+            for (int[] e : spannerEdges)
+                spannerSet.add(Math.min(e[0],e[1]) + "_" + Math.max(e[0],e[1]));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("graph \"").append(title).append("\" {\n");
+        sb.append("  layout=dot;\n");
+        sb.append("  rankdir=TB;\n");
+        sb.append("  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=11];\n\n");
+
+        for (int i = 0; i < N; i++)
+            sb.append("  v").append(i).append(" [label=\"v").append(i).append("\"];\n");
+        sb.append("\n");
+
+        for (int[] e : allEdges) {
+            int u = e[0], v = e[1], w = e[2];
+            String key = Math.min(u,v) + "_" + Math.max(u,v);
+            boolean inSpanner = (spannerEdges == null) || spannerSet.contains(key);
+            sb.append("  v").append(u).append(" -- v").append(v);
+            sb.append(" [label=\"").append(w).append("\"");
+            if (inSpanner) sb.append(", color=red, penwidth=3");
+            else           sb.append(", color=grey, style=dashed, penwidth=1");
+            sb.append("];\n");
+        }
+        sb.append("}\n");
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter(filename))) {
+            pw.print(sb);
+        }
+        System.out.println("  DOT file written: " + filename);
+        System.out.println("  Paste at: https://dreampuf.github.io/GraphvizOnline/");
+        System.out.println();
+    }
+
+    static void openBrowser(String url) {
+        try {
+            if (Desktop.isDesktopSupported())
+                Desktop.getDesktop().browse(new URI(url));
+        } catch (Exception ignored) {}
+    }
 
     static final int N   = 22;
     static final int INF = Integer.MAX_VALUE / 2;
@@ -199,7 +250,7 @@ public class Tree22 {
     // Main
     // -------------------------------------------------------------------------
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         final long SEED    = 42L;
         final int  K       = 2;
         final int  STRETCH = 2 * K - 1;
@@ -280,5 +331,13 @@ public class Tree22 {
         // ── Full verification ─────────────────────────────────────────────────
         System.out.printf("  Verifying all %d pairs ...%n", N * (N - 1) / 2);
         verify(gDist, hDist, K);
+
+        // DOT visualisation
+        System.out.println("------------------------------------------------------------");
+        System.out.println("  Exporting DOT visualisation files ...");
+        System.out.println("------------------------------------------------------------");
+        exportDot(gEdges, null,         "Tree22 — G (original tree)", "Tree22_G_before.dot");
+        exportDot(gEdges, spannerEdges, "Tree22 — H (spanner)",       "Tree22_H_after.dot");
+        openBrowser("https://dreampuf.github.io/GraphvizOnline/");
     }
 }
