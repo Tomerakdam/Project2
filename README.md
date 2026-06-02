@@ -212,14 +212,14 @@ These families are used to compare sparsity, stretch, lightness, runtime, dense-
 
 The experiment CSV contains one row per graph scenario and `k` value.
 
-| Column                       | Meaning                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------ |
+| Column                     | Meaning                                                                        |
+|----------------------------|--------------------------------------------------------------------------------|
 | `graph`                    | graph scenario name                                                            |
 | `n`                        | number of vertices                                                             |
 | `original_edges`           | number of edges in the input graph                                             |
 | `spanner_edges`            | number of edges selected by the spanner                                        |
 | `k`                        | spanner parameter                                                              |
-| `stretch`                  | theoretical stretch bound, equal to `2k - 1`                                 |
+| `stretch`                  | theoretical stretch bound, equal to `2k - 1`                                   |
 | `edge_reduction_percent`   | percent of original edges removed                                              |
 | `original_weight`          | total edge weight of the input graph                                           |
 | `spanner_weight`           | total edge weight of the spanner                                               |
@@ -227,13 +227,13 @@ The experiment CSV contains one row per graph scenario and `k` value.
 | `max_stretch`              | maximum observed pairwise stretch                                              |
 | `stretch_violations`       | number of violated stretch constraints                                         |
 | `runtime_ms`               | construction runtime in milliseconds                                           |
-| `weight_over_mst`          | `spanner_weight / mst_weight`                                                |
-| `allowed_stretch`          | duplicate/report-friendly alias for `2k - 1`                                 |
-| `stretch_utilization`      | `max_stretch / allowed_stretch`                                              |
-| `general_size_bound`       | report-friendly `n^(1+1/k)` size scale                                       |
-| `general_size_bound_ratio` | `spanner_edges / general_size_bound`                                         |
+| `weight_over_mst`          | `spanner_weight / mst_weight`                                                  |
+| `allowed_stretch`          | duplicate/report-friendly alias for `2k - 1`                                   |
+| `stretch_utilization`      | `max_stretch / allowed_stretch`                                                |
+| `general_size_bound`       | report-friendly `n^(1+1/k)` size scale                                         |
+| `general_size_bound_ratio` | `spanner_edges / general_size_bound`                                           |
 | `planar_size_bound`        | planar theorem size bound for known planar benchmark families, when applicable |
-| `planar_size_bound_ratio`  | `spanner_edges / planar_size_bound`                                          |
+| `planar_size_bound_ratio`  | `spanner_edges / planar_size_bound`                                            |
 
 The `general_size_bound` column is a normalization scale for the common `(2k-1)`-spanner discussion. The Althöfer paper uses a different parameter notation in the theorem statement, so explain the mapping in the report instead of quoting the column as the theorem verbatim.
 
