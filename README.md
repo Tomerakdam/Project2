@@ -85,8 +85,6 @@ Project2/
     SanityTests.java              correctness smoke tests
     ExperimentRunner.java         quick/full experiment runner
     VisualExampleExporter.java    exports Java-computed visual-example data for Python plots
-    GraphDotExporter.java         optional DOT overlay exporter
-    DotExampleExporter.java       optional DOT example generator
 
   scripts/
     java21.ps1                    checks Java visible on PATH
@@ -101,7 +99,6 @@ Project2/
     quick_results.csv             quick experiment output
     logs/                         run logs
     plots/                        generated figures and summary CSV files
-    dot/                          optional Graphviz DOT examples
 
   docs/
     althofer.new.pdf              source paper
@@ -276,22 +273,6 @@ results/plots/visual_examples/
 ```
 
 The visual examples compare the original graph and the greedy spanner on the same layout. Blue edges are one chosen MST contained in the spanner, red edges are additional spanner edges, and pale gray edges are original edges removed by the spanner.
-
-## Optional DOT Examples
-
-DOT generation is secondary. The report-ready visual examples are produced by `VisualExampleExporter` and `make_plots.py`.
-
-To generate DOT files manually:
-
-```powershell
-.\scripts\compile.ps1; java -cp "lib\jgrapht-core-1.5.2.jar;lib\jheaps-0.14.jar;src" DotExampleExporter results\dot
-```
-
-To render DOT files with Graphviz:
-
-```powershell
-Get-ChildItem results\dot\*.dot | ForEach-Object { dot -Tpng $_.FullName -o ($_.FullName -replace '\.dot$', '.png') }
-```
 
 ## Interpreting Results
 
