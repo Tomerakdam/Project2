@@ -1,0 +1,29 @@
+graph G {
+  graph [layout=neato, overlap=false, splines=true, outputorder=edgesfirst, label="cycle_n12, k=2, stretch=3, original edges=12, spanner edges=12 | blue=chosen MST in spanner, red=extra spanner, gray dashed=removed", labelloc=t, fontsize=18];
+  node [shape=circle, style=filled, fillcolor=white, color="#222222", fontname="Arial", fontsize=11];
+  edge [fontname="Arial", fontsize=9];
+  "0" [label="0"];
+  "1" [label="1"];
+  "10" [label="10"];
+  "11" [label="11"];
+  "2" [label="2"];
+  "3" [label="3"];
+  "4" [label="4"];
+  "5" [label="5"];
+  "6" [label="6"];
+  "7" [label="7"];
+  "8" [label="8"];
+  "9" [label="9"];
+  "0" -- "1" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "1" -- "2" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "10" -- "11" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "11" -- "0" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "2" -- "3" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "3" -- "4" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "4" -- "5" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "5" -- "6" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "6" -- "7" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "7" -- "8" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "8" -- "9" [label="1", color="#1f77b4", style="solid", penwidth=3.2];
+  "9" -- "10" [label="1", color="#d62728", style="solid", penwidth=2.6];
+}
