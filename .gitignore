@@ -5,9 +5,9 @@ Thumbs.db
 
 # generated outputs
 results/logs/
-results/dot/old/
 
 # IDE files
 .idea/
 .vscode/
 *.iml
+.venv/
