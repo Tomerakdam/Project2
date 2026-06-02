@@ -304,27 +304,8 @@ Expected behavior:
 - `weight_over_mst` measures how far the spanner is from the lightest possible connected subgraph;
 - planar benchmark families should be compared separately using the planar bound columns.
 
-## Final Submission Checklist
-
-Before submission:
+## Reproduce Full Results
 
 ```powershell
 .\scripts\test.ps1; .\scripts\run_experiments.ps1 full results\results.csv; .\scripts\make_plots.ps1 results\results.csv results\plots
 ```
-
-Then verify:
-
-- sanity tests pass;
-- full experiment log exists under `results\logs\full-run.log`;
-- the log reports zero stretch violations;
-- plots and visual examples exist under `results\plots\`;
-- report PDF is in `report\`;
-- presentation file is in `presentation\`.
-
-Remove generated `.class` files before final submission if required:
-
-```powershell
-del src\*.class
-```
-
-Do not submit unnecessary temporary files, old unused DOT/TXT files, or `.git/` internals unless specifically required.
