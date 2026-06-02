@@ -23,7 +23,7 @@ r = 2k - 1
 ```
 
 | k | Stretch bound |
-|---|---------------|
+| - | ------------- |
 | 1 | 1-spanner     |
 | 2 | 3-spanner     |
 | 3 | 5-spanner     |
@@ -63,7 +63,7 @@ MST note: when edge weights have ties, there may be several valid MSTs. The code
 
 - Language: Java
 - Graph library: JGraphT 1.5.2
-- Recommended Java version: Java 21
+- Tested with Java 21
 - Shortest paths during construction: Dijkstra on the current spanner
 - Plotting: Python with `pandas`, `matplotlib`, and `tabulate`
 
@@ -72,7 +72,7 @@ The implementation prioritizes clarity over performance. Dijkstra is recomputed 
 ## Project Structure
 
 ```text
-Project2-main/
+Project2/
   lib/
     jgrapht-core-1.5.2.jar
     jheaps-0.14.jar
@@ -105,32 +105,37 @@ Project2-main/
 
   docs/
     althofer.new.pdf              source paper
-
-  report/                         final report output location
-  presentation/                   final presentation output location
 ```
 
 ## Setup on a New Computer
 
-Open PowerShell from the project root:
+Clone the repository and open PowerShell from the project root:
 
 ```powershell
-cd "path\to\Project2-main"
+git clone https://github.com/Tomerakdam/Project2.git; cd Project2
 ```
 
-Allow local project scripts and remove Windows' downloaded-file block:
+The project includes the required Java `.jar` dependencies under `lib/`, so no Maven or Gradle setup is required.
+
+Allow local PowerShell scripts to run and remove Windows' downloaded-file block from the project scripts:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force; Get-ChildItem .\scripts -Recurse -File -Filter *.ps1 | Unblock-File
 ```
 
-Configure Java 21 for the current Windows user. Replace the path if Java 21 is installed somewhere else:
+Install Java 21, then verify that both `java` and `javac` are available from PowerShell:
 
 ```powershell
-$JdkHome = "C:\Program Files\Eclipse Adoptium\jdk-21.0.5.11-hotspot"; [Environment]::SetEnvironmentVariable("JAVA_HOME", $JdkHome, "User"); [Environment]::SetEnvironmentVariable("Path", "$JdkHome\bin;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
+java -version; javac -version; where.exe java; where.exe javac
 ```
 
-Close PowerShell, open it again, then verify Java:
+If Java is installed but not found, set `JAVA_HOME` to the local JDK folder and add its `bin` directory to the user PATH. Replace the path below with the actual Java 21 JDK path on the computer:
+
+```powershell
+$JdkHome = "C:\Path\To\Your\JDK"; [Environment]::SetEnvironmentVariable("JAVA_HOME", $JdkHome, "User"); [Environment]::SetEnvironmentVariable("Path", "$JdkHome\bin;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
+```
+
+Close PowerShell, open it again from the project root, and verify Java again:
 
 ```powershell
 java -version; javac -version; where.exe java; where.exe javac
@@ -142,7 +147,7 @@ Create the local Python environment used by the plotting script:
 py -3 -m venv .venv; .\.venv\Scripts\python.exe -m pip install --upgrade pip; .\.venv\Scripts\python.exe -m pip install pandas matplotlib tabulate
 ```
 
-Check the Java toolchain seen by the project:
+Check the Java toolchain seen by the project scripts:
 
 ```powershell
 .\scripts\java21.ps1
@@ -204,35 +209,34 @@ The full mode currently uses `k = 1, 2, 3, 4, 5` and includes:
 - theta-style lower-bound examples;
 - wide-weight-range graphs.
 
-This is enough for the report discussion: sparsity, stretch, lightness, runtime, dense-vs-sparse behavior, planar behavior, and lower-bound intuition.
+These families are used to compare sparsity, stretch, lightness, runtime, dense-vs-sparse behavior, planar behavior, and lower-bound intuition.
 
 ## CSV Output Columns
 
 The experiment CSV contains one row per graph scenario and `k` value.
 
-| Column | Meaning |
-|---|---|
-| `graph` | graph scenario name |
-| `n` | number of vertices |
-| `original_edges` | number of edges in the input graph |
-| `spanner_edges` | number of edges selected by the spanner |
-| `k` | spanner parameter |
-| `stretch` | theoretical stretch bound, equal to `2k - 1` |
-| `selected_edges` | duplicate/report-friendly alias for `spanner_edges` |
-| `edge_reduction_percent` | percent of original edges removed |
-| `original_weight` | total edge weight of the input graph |
-| `spanner_weight` | total edge weight of the spanner |
-| `mst_weight` | total weight of a minimum spanning tree |
-| `max_stretch` | maximum observed pairwise stretch |
-| `stretch_violations` | number of violated stretch constraints |
-| `runtime_ms` | construction runtime in milliseconds |
-| `weight_over_mst` | `spanner_weight / mst_weight` |
-| `allowed_stretch` | duplicate/report-friendly alias for `2k - 1` |
-| `stretch_utilization` | `max_stretch / allowed_stretch` |
-| `general_size_bound` | report-friendly `n^(1+1/k)` size scale |
-| `general_size_bound_ratio` | `spanner_edges / general_size_bound` |
-| `planar_size_bound` | planar theorem size bound for known planar benchmark families, when applicable |
-| `planar_size_bound_ratio` | `spanner_edges / planar_size_bound` |
+| Column                       | Meaning                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `graph`                    | graph scenario name                                                            |
+| `n`                        | number of vertices                                                             |
+| `original_edges`           | number of edges in the input graph                                             |
+| `spanner_edges`            | number of edges selected by the spanner                                        |
+| `k`                        | spanner parameter                                                              |
+| `stretch`                  | theoretical stretch bound, equal to `2k - 1`                                 |
+| `edge_reduction_percent`   | percent of original edges removed                                              |
+| `original_weight`          | total edge weight of the input graph                                           |
+| `spanner_weight`           | total edge weight of the spanner                                               |
+| `mst_weight`               | total weight of a minimum spanning tree                                        |
+| `max_stretch`              | maximum observed pairwise stretch                                              |
+| `stretch_violations`       | number of violated stretch constraints                                         |
+| `runtime_ms`               | construction runtime in milliseconds                                           |
+| `weight_over_mst`          | `spanner_weight / mst_weight`                                                |
+| `allowed_stretch`          | duplicate/report-friendly alias for `2k - 1`                                 |
+| `stretch_utilization`      | `max_stretch / allowed_stretch`                                              |
+| `general_size_bound`       | report-friendly `n^(1+1/k)` size scale                                       |
+| `general_size_bound_ratio` | `spanner_edges / general_size_bound`                                         |
+| `planar_size_bound`        | planar theorem size bound for known planar benchmark families, when applicable |
+| `planar_size_bound_ratio`  | `spanner_edges / planar_size_bound`                                          |
 
 The `general_size_bound` column is a normalization scale for the common `(2k-1)`-spanner discussion. The Althöfer paper uses a different parameter notation in the theorem statement, so explain the mapping in the report instead of quoting the column as the theorem verbatim.
 

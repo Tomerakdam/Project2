@@ -129,14 +129,13 @@ public final class SpannerResult {
     public String toCsvRow() {
         return String.format(
                 java.util.Locale.US,
-                "%s,%d,%d,%d,%d,%.6f,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f",
+                "%s,%d,%d,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f",
                 graphName,
                 n,
                 originalEdges,
                 spannerEdges,
                 k,
                 stretch,
-                spannerEdges,
                 edgeReductionPercent(),
                 originalWeight,
                 spannerWeight,
@@ -155,7 +154,7 @@ public final class SpannerResult {
     }
 
     public static String csvHeader() {
-        return "graph,n,original_edges,spanner_edges,k,stretch,selected_edges,edge_reduction_percent," +
+        return  "graph,n,original_edges,spanner_edges,k,stretch,edge_reduction_percent," +
                 "original_weight,spanner_weight,mst_weight,max_stretch,stretch_violations,runtime_ms," +
                 "weight_over_mst,allowed_stretch,stretch_utilization," +
                 "general_size_bound,general_size_bound_ratio,planar_size_bound,planar_size_bound_ratio";
