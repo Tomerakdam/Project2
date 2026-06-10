@@ -1,0 +1,5 @@
+family,k,avg_planar_bound_ratio,max_planar_bound_ratio
+grid_planar,2,0.585636,0.592325
+grid_planar,3,0.7171255000000001,0.720801
+grid_planar,4,0.778903,0.78337
+grid_planar,5,0.8186985,0.821357

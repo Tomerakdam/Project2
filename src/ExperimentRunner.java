@@ -40,8 +40,11 @@ public final class ExperimentRunner {
             case "full":
                 scenarios = fullScenarios();
                 break;
+            case "large":
+                scenarios = largeScenarios();
+                break;
             default:
-                throw new IllegalArgumentException("Unknown mode: " + mode + ". Expected quick or full.");
+                throw new IllegalArgumentException("Unknown mode: " + mode + ". Expected quick, full, or large.");
         }
 
         runExperiments(mode, scenarios, outputPath);
@@ -207,6 +210,55 @@ public final class ExperimentRunner {
         addRepeatedRandomConnectedScenarios(scenarios, "repeat_medium_n100_extra300", 100, 300, 1, 100, 900L, 3);
 
         return scenarios;
+    }
+
+    /**
+     * Larger report experiments focused on scaling and explicit edge probability.
+     *
+     * These scenarios are intentionally separated from fullScenarios() because they
+     * can take longer. They answer the report question: how does the algorithm behave
+     * when n and density increase?
+     */
+    private static List<Scenario> largeScenarios() {
+        List<Scenario> scenarios = new ArrayList<>();
+
+        addErdosRenyiScenarios(scenarios, "er_p002", 0.02, 1, 100, 2000L, 3, 200, 400, 800);
+        addErdosRenyiScenarios(scenarios, "er_p005", 0.05, 1, 100, 3000L, 3, 200, 400, 800);
+        addErdosRenyiScenarios(scenarios, "er_p010", 0.10, 1, 100, 4000L, 3, 200, 400);
+        addErdosRenyiScenarios(scenarios, "er_p020", 0.20, 1, 100, 5000L, 3, 200, 400);
+
+        scenarios.add(new Scenario("grid_20x20_weighted_seed610",
+                GraphFactory.gridGraph(20, 20, 1, 100, 610L)));
+        scenarios.add(new Scenario("grid_30x30_weighted_seed611",
+                GraphFactory.gridGraph(30, 30, 1, 100, 611L)));
+
+        scenarios.add(new Scenario("complete_n75_seed620",
+                GraphFactory.completeGraph(75, 1, 100, 620L)));
+        scenarios.add(new Scenario("complete_n100_seed621",
+                GraphFactory.completeGraph(100, 1, 100, 621L)));
+
+        return scenarios;
+    }
+
+    private static void addErdosRenyiScenarios(
+            List<Scenario> scenarios,
+            String label,
+            double p,
+            int minWeight,
+            int maxWeight,
+            long baseSeed,
+            int repetitions,
+            int... sizes
+    ) {
+        for (int n : sizes) {
+            for (int rep = 0; rep < repetitions; rep++) {
+                long seed = baseSeed + 100L * n + rep;
+                scenarios.add(new Scenario(
+                        "random_connected_" + label + "_n" + n + "_p" + String.format(Locale.US, "%.3f", p) + "_rep" + (rep + 1) + "_seed" + seed,
+                        GraphFactory.randomConnectedErdosRenyiGraph(n, p, minWeight, maxWeight, seed)
+                ));
+            }
+        }
     }
 
     private static void addPathScenarios(List<Scenario> scenarios, int... sizes) {

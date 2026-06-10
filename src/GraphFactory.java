@@ -148,7 +148,44 @@ public final class GraphFactory {
 
         return graph;
     }
+    
+    /**
+     * Connected Erdős-Rényi-style graph.
+     *
+     * Connectivity is forced by first adding a random spanning tree.
+     * Then, every remaining possible edge is added independently with probability p.
+     * This makes density explicit for the large random graph experiments.
+     */
+    public static SimpleWeightedGraph<Integer, DefaultWeightedEdge> randomConnectedErdosRenyiGraph(
+            int n,
+            double p,
+            int minWeight,
+            int maxWeight,
+            long seed
+    ) {
+        if (n < 1) {
+            throw new IllegalArgumentException("n must be >= 1");
+        }
+        if (!Double.isFinite(p) || p < 0.0 || p > 1.0) {
+            throw new IllegalArgumentException("p must be in [0, 1]");
+        }
+        validateWeightRange(minWeight, maxWeight);
 
+        SimpleWeightedGraph<Integer, DefaultWeightedEdge> graph =
+                randomTree(n, minWeight, maxWeight, seed);
+
+        Random random = new Random(seed ^ 0xD1B54A32D192ED03L);
+
+        for (int u = 0; u < n; u++) {
+            for (int v = u + 1; v < n; v++) {
+                if (!graph.containsEdge(u, v) && random.nextDouble() < p) {
+                    addEdge(graph, u, v, randomWeight(random, minWeight, maxWeight));
+                }
+            }
+        }
+
+        return graph;
+    }
 
     /**
      * Rectangular grid graph with rows*cols vertices and positive integer weights.

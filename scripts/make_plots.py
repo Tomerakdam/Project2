@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -110,6 +111,8 @@ def graph_family(name: str) -> str:
         return "grid_planar"
     if name.startswith("theta_lower_bound"):
         return "theta_lower_bound"
+    if name.startswith("random_connected_er_"):
+        return "random_er"
     if "random_connected_sparse" in name:
         return "random_sparse"
     if "random_connected_medium" in name or "repeat_medium" in name:
@@ -131,6 +134,23 @@ def validate(df: pd.DataFrame) -> None:
         bad = df[df["stretch_violations"] > 0][["graph", "k", "stretch_violations"]]
         print("WARNING: stretch violations found:")
         print(bad.to_string(index=False))
+
+
+def parse_er_probability(graph_name: str) -> Optional[float]:
+    match = re.search(r"_p(\d+\.\d+)_", graph_name)
+    if not match:
+        return None
+    return float(match.group(1))
+
+
+def add_density_columns(df: pd.DataFrame) -> None:
+    max_possible_edges = df["n"] * (df["n"] - 1) / 2.0
+
+    df["edge_density"] = df["original_edges"] / max_possible_edges
+    df.loc[max_possible_edges <= 0, "edge_density"] = 0.0
+
+    df["er_probability"] = pd.to_numeric(df["graph"].map(parse_er_probability), errors="coerce")
+    df["is_large_random_er"] = df["graph"].str.startswith("random_connected_er_")
 
 
 def save_line_plot(
@@ -208,6 +228,146 @@ def save_runtime_scatter(df: pd.DataFrame, path: Path) -> None:
     plt.close(fig)
 
 
+def save_runtime_vs_edges_large(df: pd.DataFrame, path: Path) -> None:
+    part = df.copy()
+    if part.empty:
+        return
+
+    fig, ax = plt.subplots(figsize=(9.4, 5.4))
+    style_axes(ax)
+
+    for k, group in part.groupby("k"):
+        ax.scatter(
+            group["original_edges"],
+            group["runtime_ms"],
+            label=f"k={int(k)}",
+            alpha=0.75,
+            s=34,
+        )
+
+    if (part["runtime_ms"] > 0).all():
+        ax.set_yscale("log")
+
+    set_report_title(
+        ax,
+        r"Large Experiments: Runtime vs. Input Edges",
+        r"construction time only, excluding metric post-processing and plotting",
+    )
+    ax.set_xlabel(r"Original edge count $|E_G|$")
+    ax.set_ylabel(r"Runtime $\mathrm{ms}$")
+    ax.legend(title="parameter", frameon=True, framealpha=0.92)
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def save_edge_reduction_vs_density(df: pd.DataFrame, path: Path) -> None:
+    part = df[df["edge_density"].notna()].copy()
+    if part.empty:
+        return
+
+    fig, ax = plt.subplots(figsize=(9.4, 5.4))
+    style_axes(ax)
+
+    for k, group in part.groupby("k"):
+        ax.scatter(
+            group["edge_density"],
+            group["edge_reduction_percent"],
+            label=f"k={int(k)}",
+            alpha=0.75,
+            s=34,
+        )
+
+    set_report_title(
+        ax,
+        r"Edge Reduction vs. Graph Density",
+        r"density $= |E_G|/\binom{n}{2}$",
+    )
+    ax.set_xlabel(r"Input density $|E_G|/\binom{n}{2}$")
+    ax.set_ylabel(r"Edge reduction $100\cdot(1-|E_H|/|E_G|)$")
+    ax.legend(title="parameter", frameon=True, framealpha=0.92)
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def save_spanner_size_by_n_density(df: pd.DataFrame, path: Path, target_k: int = 3) -> None:
+    er = df[df["is_large_random_er"] & (df["k"] == target_k)].copy()
+    if er.empty:
+        return
+
+    grouped = er.groupby(["er_probability", "n"], as_index=False).agg(
+        avg_spanner_edges=("spanner_edges", "mean"),
+        avg_original_edges=("original_edges", "mean"),
+    )
+
+    fig, ax = plt.subplots(figsize=(9.4, 5.4))
+    style_axes(ax)
+
+    for p, group in grouped.groupby("er_probability"):
+        group = group.sort_values("n")
+        ax.plot(
+            group["n"],
+            group["avg_spanner_edges"],
+            marker="o",
+            linewidth=2.0,
+            label=f"p={p:.2f}",
+        )
+
+    set_report_title(
+        ax,
+        rf"Spanner Size Growth for Random Graphs ($k={target_k}$)",
+        r"connected Erdős-Rényi-style inputs with explicit edge probability",
+    )
+    ax.set_xlabel(r"Number of vertices $n$")
+    ax.set_ylabel(r"Average spanner edge count $\mathbb{E}[|E_H|]$")
+    ax.legend(title="edge probability", frameon=True, framealpha=0.92)
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def save_edge_reduction_heatmap(df: pd.DataFrame, path: Path) -> None:
+    er = df[df["is_large_random_er"]].copy()
+    if er.empty:
+        return
+
+    matrix = (
+        er.groupby(["er_probability", "k"])["edge_reduction_percent"]
+        .mean()
+        .unstack("k")
+        .sort_index()
+    )
+
+    if matrix.empty:
+        return
+
+    fig, ax = plt.subplots(figsize=(8.6, 5.2))
+    im = ax.imshow(matrix.values, aspect="auto")
+
+    ax.set_xticks(range(len(matrix.columns)))
+    ax.set_xticklabels([str(int(k)) for k in matrix.columns])
+    ax.set_yticks(range(len(matrix.index)))
+    ax.set_yticklabels([f"{p:.2f}" for p in matrix.index])
+
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
+            value = matrix.iloc[i, j]
+            ax.text(j, i, f"{value:.1f}", ha="center", va="center", fontsize=8)
+
+    set_report_title(
+        ax,
+        r"Average Edge Reduction by Density and $k$",
+        r"values are percentages over large connected random graph experiments",
+    )
+    ax.set_xlabel(r"Spanner parameter $k$")
+    ax.set_ylabel(r"Edge probability $p$")
+    fig.colorbar(im, ax=ax, label="Average edge reduction %")
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
 def save_summary_markdown(df: pd.DataFrame, by_k: pd.DataFrame, by_family_k: pd.DataFrame, output_dir: Path) -> None:
     total_rows = len(df)
     violations = int(df["stretch_violations"].sum())
@@ -246,6 +406,7 @@ def create_quantitative_plots(input_csv: Path, output_dir: Path) -> None:
     validate(df)
 
     df["family"] = df["graph"].map(graph_family)
+    add_density_columns(df)
 
     # New Java CSV files already include the report-ready derived metrics below.
     # Keep fallback formulas so old CSV files can still be plotted.
@@ -381,6 +542,10 @@ def create_quantitative_plots(input_csv: Path, output_dir: Path) -> None:
         subtitle=r"measured sparsity relative to the standard $n^{1+1/k}$ size scale",
     )
     save_runtime_scatter(df, output_dir / "runtime_vs_original_edges.png")
+    save_runtime_vs_edges_large(df, output_dir / "runtime_vs_original_edges_large.png")
+    save_edge_reduction_vs_density(df, output_dir / "edge_reduction_vs_density.png")
+    save_spanner_size_by_n_density(df, output_dir / "spanner_edges_vs_n_by_density_k3.png", target_k=3)
+    save_edge_reduction_heatmap(df, output_dir / "edge_reduction_heatmap_k_density.png")
 
     save_summary_markdown(df, by_k, by_family_k, output_dir)
 

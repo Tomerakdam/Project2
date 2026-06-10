@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("quick", "full")]
+    [ValidateSet("quick", "full", "large")]
     [string]$Mode = "full",
 
     [string]$Output = "results\results.csv",
