@@ -2,7 +2,7 @@
 
 Implementation and experimental evaluation of the greedy weighted graph spanner algorithm from:
 
-> I. Althöfer, G. Das, D. Dobkin, D. Joseph, and J. Soares, **On Sparse Spanners of Weighted Graphs**, Discrete & Computational Geometry, 9, 81–100, 1993.
+> I. Althöfer, G. Das, D. Dobkin, D. Joseph, and J. Soares,  **On Sparse Spanners of Weighted Graphs** , Discrete & Computational Geometry, 9, 81–100, 1993.
 
 The project constructs sparse weighted subgraphs that approximately preserve all-pairs shortest-path distances.
 
@@ -50,24 +50,26 @@ SPANNER(G, r):
 
 The code checks the main correctness properties needed for the report:
 
-- the output graph keeps the original vertex set;
-- every selected edge comes from the original graph;
-- connected inputs produce connected spanners;
-- the empirical stretch respects the `2k - 1` bound;
-- `k = 1` preserves exact shortest-path distances;
-- the spanner contains at least one minimum spanning tree of the original graph.
+* the output graph keeps the original vertex set;
+* every selected edge comes from the original graph;
+* connected inputs produce connected spanners;
+* the empirical stretch respects the `2k - 1` bound;
+* `k = 1` preserves exact shortest-path distances;
+* the spanner contains at least one minimum spanning tree of the original graph.
 
 MST note: when edge weights have ties, there may be several valid MSTs. The code and visualizations use a tie-safe interpretation: the spanner is checked/colored as containing **some** MST, not necessarily the exact arbitrary MST that a library might choose on the original graph.
 
 ## Implementation Details
 
-- Language: Java
-- Graph library: JGraphT 1.5.2
-- Tested with Java 21
-- Shortest paths during construction: Dijkstra on the current spanner
-- Plotting: Python with `pandas`, `matplotlib`, and `tabulate`
+* Language: Java
+* Graph library: JGraphT 1.5.2
+* Tested with Java 21
+* Shortest paths during construction: Dijkstra on the current spanner
+* Plotting: Python with `pandas`, `matplotlib`, and `tabulate`
 
 The implementation prioritizes clarity over performance. Dijkstra is recomputed for each candidate edge, which is correct for this project scale but not optimized for very large graphs.
+
+Runtime note: `runtime_ms` measures greedy spanner construction time only. It does not include plotting, CSV post-processing, or report generation.
 
 ## Project Structure
 
@@ -81,24 +83,25 @@ Project2/
     GreedyWeightedSpanner.java    core greedy spanner implementation
     SpannerResult.java            one experiment row and derived CSV metrics
     GraphMetrics.java             stretch, weight, MST, and validation metrics
-    GraphFactory.java             deterministic graph generators
+    GraphFactory.java             deterministic and random weighted graph generators
     SanityTests.java              correctness smoke tests
-    ExperimentRunner.java         quick/full experiment runner
+    ExperimentRunner.java         quick/structural/large experiment runner
     VisualExampleExporter.java    exports Java-computed visual-example data for Python plots
 
   scripts/
     java21.ps1                    checks Java visible on PATH
     compile.ps1                   compiles all Java source files
     test.ps1                      compiles and runs sanity tests
-    run_experiments.ps1           compiles and runs quick/full experiments with logs
-    make_plots.ps1                compiles, exports visual data, and runs Python plotting
-    make_plots.py                 generates report plots and visual examples
+    run_experiments.ps1           compiles and runs quick/structural/large experiments with logs
+    make_plots.ps1                compiles and generates mode-specific report plots
+    make_plots.py                 generates quantitative plots and structural visual examples
 
   results/
-    results.csv                   full experiment output
-    quick_results.csv             quick experiment output
+    structural_results.csv        structural experiment output
+    large_results.csv             large weighted random/scaling experiment output
     logs/                         run logs
-    plots/                        generated figures and summary CSV files
+    plots_structural/             figures, summaries, and visual examples from structural results
+    plots_large/                  figures and summaries from large results
 
   docs/
     althofer.new.pdf              source paper
@@ -170,56 +173,92 @@ PASS all sanity tests (6/6)
 
 ## Run Experiments
 
-Quick mode:
+Quick mode is a small development run:
 
 ```powershell
-.\scripts\run_experiments.ps1 quick results\quick_results.csv
+.\scripts\run_experiments.ps1 quick
 ```
 
-Full mode:
+Structural mode is the graph-family benchmark used for the structural part of the report:
 
 ```powershell
-.\scripts\run_experiments.ps1 full results\results.csv
+.\scripts\run_experiments.ps1 structural
 ```
 
-Default run, equivalent to full mode with `results\results.csv`:
+Large mode is the weighted large-graph benchmark used for density and scaling analysis:
+
+```powershell
+.\scripts\run_experiments.ps1 large
+```
+
+Default run is equivalent to structural mode:
 
 ```powershell
 .\scripts\run_experiments.ps1
+```
+
+Default output files:
+
+```text
+quick       -> results\quick_results.csv
+structural  -> results\structural_results.csv
+large       -> results\large_results.csv
 ```
 
 The experiment script writes a log under `results\logs\`. If an existing log has the same name, it is archived under `results\logs\archive\` before the new run starts.
 
 ## Experiment Coverage
 
-The full mode currently uses `k = 1, 2, 3, 4, 5` and includes:
+The project separates report experiments into two categories.
 
-- paths;
-- cycles;
-- cycle-threshold examples;
-- random trees;
-- complete weighted graphs;
-- equal-weight complete graphs;
-- sparse, medium, and dense random connected graphs;
-- repeated random seeds for averaging;
-- grid planar graphs;
-- theta-style lower-bound examples;
-- wide-weight-range graphs.
+### Structural experiments
 
-These families are used to compare sparsity, stretch, lightness, runtime, dense-vs-sparse behavior, planar behavior, and lower-bound intuition.
+Structural mode uses `k = 1, 2, 3, 4, 5` and includes:
+
+* paths;
+* cycles;
+* cycle-threshold examples;
+* random trees;
+* complete weighted graphs;
+* equal-weight complete graphs;
+* sparse, medium, and dense random connected graphs;
+* repeated random seeds for averaging;
+* grid planar graphs;
+* theta-style lower-bound examples;
+* wide-weight-range graphs.
+
+These families are used to compare sparsity, stretch, lightness, dense-vs-sparse behavior, planar behavior, and lower-bound intuition.
+
+### Large weighted density/scaling experiments
+
+Large mode also uses `k = 1, 2, 3, 4, 5`, but its purpose is different. It focuses on larger weighted graphs and controlled density experiments:
+
+* weighted connected Erdős–Rényi-style random graphs with explicit edge probability `p`;
+* larger weighted planar grid graphs;
+* larger complete weighted graphs.
+
+The connected Erdős–Rényi-style generator first adds a random spanning tree to guarantee connectivity. Then, for every remaining possible edge, it adds the edge independently with probability `p`. Every edge receives a positive integer weight sampled from the configured weight range.
+
+Current large random graph probabilities:
+
+```text
+p = 0.02, 0.05, 0.10, 0.20, 0.30
+```
+
+The lower probabilities are used with larger `n` values, while higher probabilities are kept to moderate sizes to avoid excessive runtime. The large mode is intended for density and scaling analysis: how edge reduction, lightness, stretch, and runtime change as the number of vertices, number of edges, and edge probability increase.
 
 ## CSV Output Columns
 
 The experiment CSV contains one row per graph scenario and `k` value.
 
-| Column                     | Meaning                                                                        |
-|----------------------------|--------------------------------------------------------------------------------|
+| Column                       | Meaning                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------ |
 | `graph`                    | graph scenario name                                                            |
 | `n`                        | number of vertices                                                             |
 | `original_edges`           | number of edges in the input graph                                             |
 | `spanner_edges`            | number of edges selected by the spanner                                        |
 | `k`                        | spanner parameter                                                              |
-| `stretch`                  | theoretical stretch bound, equal to `2k - 1`                                   |
+| `stretch`                  | theoretical stretch bound, equal to `2k - 1`                                 |
 | `edge_reduction_percent`   | percent of original edges removed                                              |
 | `original_weight`          | total edge weight of the input graph                                           |
 | `spanner_weight`           | total edge weight of the spanner                                               |
@@ -227,66 +266,116 @@ The experiment CSV contains one row per graph scenario and `k` value.
 | `max_stretch`              | maximum observed pairwise stretch                                              |
 | `stretch_violations`       | number of violated stretch constraints                                         |
 | `runtime_ms`               | construction runtime in milliseconds                                           |
-| `weight_over_mst`          | `spanner_weight / mst_weight`                                                  |
-| `allowed_stretch`          | duplicate/report-friendly alias for `2k - 1`                                   |
-| `stretch_utilization`      | `max_stretch / allowed_stretch`                                                |
-| `general_size_bound`       | report-friendly `n^(1+1/k)` size scale                                         |
-| `general_size_bound_ratio` | `spanner_edges / general_size_bound`                                           |
+| `weight_over_mst`          | `spanner_weight / mst_weight`                                                |
+| `allowed_stretch`          | duplicate/report-friendly alias for `2k - 1`                                 |
+| `stretch_utilization`      | `max_stretch / allowed_stretch`                                              |
+| `general_size_bound`       | report-friendly `n^(1+1/k)`size scale                                        |
+| `general_size_bound_ratio` | `spanner_edges / general_size_bound`                                         |
 | `planar_size_bound`        | planar theorem size bound for known planar benchmark families, when applicable |
-| `planar_size_bound_ratio`  | `spanner_edges / planar_size_bound`                                            |
+| `planar_size_bound_ratio`  | `spanner_edges / planar_size_bound`                                          |
 
 The `general_size_bound` column is a normalization scale for the common `(2k-1)`-spanner discussion. The Althöfer paper uses a different parameter notation in the theorem statement, so explain the mapping in the report instead of quoting the column as the theorem verbatim.
 
 ## Generate Plots and Visual Examples
 
-Run:
+Generate structural plots and visual examples:
 
 ```powershell
-.\scripts\make_plots.ps1 results\results.csv results\plots
+.\scripts\make_plots.ps1 structural
 ```
 
-This performs three steps:
+Generate large density/scaling plots:
+
+```powershell
+.\scripts\make_plots.ps1 large
+```
+
+Default input/output locations:
+
+```text
+structural:
+  input  = results\structural_results.csv
+  output = results\plots_structural
+
+large:
+  input  = results\large_results.csv
+  output = results\plots_large
+```
+
+Structural plotting performs three steps:
 
 1. compiles the Java sources;
 2. runs `VisualExampleExporter` to export exact Java-computed visual-example CSV files;
 3. runs `scripts\make_plots.py` to generate plots, visual graph examples, and summary tables.
 
-Main outputs:
+Large plotting skips visual examples and generates only quantitative plots and summary tables.
+
+## Structural Plot Outputs
 
 ```text
-results/plots/avg_spanner_edges_by_k.png
-results/plots/avg_edge_reduction_by_k.png
-results/plots/avg_weight_over_mst_by_k.png
-results/plots/max_observed_stretch_by_k.png
-results/plots/avg_general_size_bound_ratio_by_k.png
-results/plots/avg_stretch_utilization_by_k.png
-results/plots/family_edge_reduction_by_k.png
-results/plots/family_weight_over_mst_by_k.png
-results/plots/family_general_size_bound_ratio_by_k.png
-results/plots/runtime_vs_original_edges.png
-results/plots/summary.md
-results/plots/summary_by_k.csv
-results/plots/summary_by_family_k.csv
-results/plots/summary_planar_bounds.csv
-results/plots/results_with_derived_metrics.csv
-results/plots/visual_examples/
+results/plots_structural/avg_edge_reduction_by_k.png
+results/plots_structural/avg_weight_over_mst_by_k.png
+results/plots_structural/max_observed_stretch_by_k.png
+results/plots_structural/family_edge_reduction_by_k.png
+results/plots_structural/family_weight_over_mst_by_k.png
+results/plots_structural/summary.md
+results/plots_structural/summary_by_k.csv
+results/plots_structural/summary_by_family_k.csv
+results/plots_structural/summary_planar_bounds.csv
+results/plots_structural/results_with_derived_metrics.csv
+results/plots_structural/visual_examples/
 ```
 
 The visual examples compare the original graph and the greedy spanner on the same layout. Blue edges are one chosen MST contained in the spanner, red edges are additional spanner edges, and pale gray edges are original edges removed by the spanner.
+
+## Large Plot Outputs
+
+```text
+results/plots_large/avg_weight_over_mst_by_k.png
+results/plots_large/max_observed_stretch_by_k.png
+results/plots_large/edge_reduction_vs_density.png
+results/plots_large/edge_reduction_heatmap_k_density.png
+results/plots_large/runtime_vs_original_edges_large.png
+results/plots_large/spanner_edges_vs_n_by_density_k3.png
+results/plots_large/summary.md
+results/plots_large/summary_by_k.csv
+results/plots_large/summary_by_family_k.csv
+results/plots_large/results_with_derived_metrics.csv
+```
+
+The large plots should be used for the report discussion about controlled edge probability, density, graph size, and construction runtime.
 
 ## Interpreting Results
 
 Expected behavior:
 
-- trees should remain unchanged because removing any tree edge disconnects the graph;
-- dense graphs, especially complete graphs, should lose many edges;
-- increasing `k` usually reduces edge count and lightness, but this is empirical behavior, not a strict nesting guarantee for every graph;
-- all valid runs should have `stretch_violations = 0`;
-- `weight_over_mst` measures how far the spanner is from the lightest possible connected subgraph;
-- planar benchmark families should be compared separately using the planar bound columns.
+* trees should remain unchanged because removing any tree edge disconnects the graph;
+* dense graphs, especially complete graphs, should lose many edges;
+* weighted connected random graphs should usually show higher edge reduction as density increases;
+* increasing `k` usually reduces edge count and lightness, but this is empirical behavior, not a strict nesting guarantee for every graph;
+* all valid runs should have `stretch_violations = 0`;
+* `weight_over_mst` measures how far the spanner is from the lightest possible connected subgraph;
+* planar benchmark families should be compared separately using the planar bound columns;
+* large-mode runtime plots should be used for scaling discussion, not the small structural-mode runtime averages.
 
-## Reproduce Full Results
+The structural plots are best used for explaining behavior across graph families: paths, trees, cycles, complete graphs, random graphs, grids, and theta-style hard examples.
+
+The large plots are best used for explaining scaling and density behavior: how the algorithm behaves on larger weighted graphs where edge density is controlled by probability `p`.
+
+## Reproduce Structural Results
 
 ```powershell
-.\scripts\test.ps1; .\scripts\run_experiments.ps1 full results\results.csv; .\scripts\make_plots.ps1 results\results.csv results\plots
+.\scripts\test.ps1; .\scripts\run_experiments.ps1 structural; .\scripts\make_plots.ps1 structural
+```
+
+## Reproduce Large Results
+
+```powershell
+.\scripts\test.ps1; .\scripts\run_experiments.ps1 large; .\scripts\make_plots.ps1 large
+```
+
+## Reproduce All Report Results
+
+```powershell
+.\scripts\test.ps1; .\scripts\run_experiments.ps1 structural; .\scripts\make_plots.ps1 structural; .\scripts\run_experiments.ps1 large; .\scripts\make_plots.ps1 large
 ```
