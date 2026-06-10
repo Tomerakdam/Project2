@@ -227,6 +227,7 @@ public final class ExperimentRunner {
         addErdosRenyiScenarios(scenarios, "er_p005", 0.05, 1, 100, 3000L, 3, 200, 400, 800);
         addErdosRenyiScenarios(scenarios, "er_p010", 0.10, 1, 100, 4000L, 3, 200, 400);
         addErdosRenyiScenarios(scenarios, "er_p020", 0.20, 1, 100, 5000L, 3, 200, 400);
+        addErdosRenyiScenarios(scenarios, "er_p030", 0.30, 1, 100, 6000L, 3, 200, 400);
 
         scenarios.add(new Scenario("grid_20x20_weighted_seed610",
                 GraphFactory.gridGraph(20, 20, 1, 100, 610L)));
