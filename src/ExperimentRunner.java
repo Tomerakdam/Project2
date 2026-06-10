@@ -17,7 +17,8 @@ import java.util.Locale;
  *
  * Modes:
  * - quick: small smoke-test experiment set for development.
- * - full: expanded report-quality experiment set.
+ * - structural: report-quality structural graph-family experiment set.
+ * - large: larger weighted density/scaling experiment set.
  *
  * Output: results/results.csv by default.
  */
@@ -29,7 +30,7 @@ public final class ExperimentRunner {
     }
 
     public static void main(String[] args) throws IOException {
-        String mode = args.length >= 1 ? args[0].toLowerCase(Locale.ROOT) : "quick";
+        String mode = args.length >= 1 ? args[0].toLowerCase(Locale.ROOT) : "structural";
         Path outputPath = args.length >= 2 ? Paths.get(args[1]) : Paths.get("results", "results.csv");
 
         List<Scenario> scenarios;
@@ -37,14 +38,14 @@ public final class ExperimentRunner {
             case "quick":
                 scenarios = quickScenarios();
                 break;
-            case "full":
-                scenarios = fullScenarios();
+            case "structural":
+                scenarios = structuralScenarios();
                 break;
             case "large":
                 scenarios = largeScenarios();
                 break;
             default:
-                throw new IllegalArgumentException("Unknown mode: " + mode + ". Expected quick, full, or large.");
+                throw new IllegalArgumentException("Unknown mode: " + mode + ". Expected quick, structural, or large.");
         }
 
         runExperiments(mode, scenarios, outputPath);
@@ -120,7 +121,7 @@ public final class ExperimentRunner {
     }
 
     /**
-     * Expanded experiments for the final report.
+     * Structural experiments for the final report.
      *
      * The set is intentionally balanced:
      * - sparse baseline graphs: paths, cycles, trees
@@ -129,7 +130,7 @@ public final class ExperimentRunner {
      * - repeated random seeds for averaging
      * - wide weight ranges to test sensitivity to edge weights
      */
-    private static List<Scenario> fullScenarios() {
+    private static List<Scenario> structuralScenarios() {
         List<Scenario> scenarios = new ArrayList<>();
 
         scenarios.addAll(quickScenarios());
@@ -215,7 +216,7 @@ public final class ExperimentRunner {
     /**
      * Larger report experiments focused on scaling and explicit edge probability.
      *
-     * These scenarios are intentionally separated from fullScenarios() because they
+     * These scenarios are intentionally separated from the structural benchmark because they
      * can take longer. They answer the report question: how does the algorithm behave
      * when n and density increase?
      */

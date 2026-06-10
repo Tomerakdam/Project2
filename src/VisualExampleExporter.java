@@ -31,7 +31,6 @@ import java.util.Set;
  * spanner.
  */
 public final class VisualExampleExporter {
-    private static final double EPS = 1e-9;
 
     private VisualExampleExporter() {
         // Utility class; do not instantiate.

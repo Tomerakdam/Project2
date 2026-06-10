@@ -1,8 +1,8 @@
 param(
-    [ValidateSet("quick", "full", "large")]
-    [string]$Mode = "full",
+    [ValidateSet("quick", "structural", "large")]
+    [string]$Mode = "structural",
 
-    [string]$Output = "results\results.csv",
+    [string]$Output = "",
 
     # Default logs are written to results\logs\<mode>-run.log.
     # If the file already exists, the previous version is archived first.
@@ -20,6 +20,23 @@ try {
 
     if ([string]::IsNullOrWhiteSpace($LogFile)) {
         $LogFile = Join-Path "results\logs" "$Mode-run.log"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($Output)) {
+        switch ($Mode) {
+            "quick" {
+                $Output = "results\quick_results.csv"
+            }
+            "structural" {
+                $Output = "results\structural_results.csv"
+            }
+            "large" {
+                $Output = "results\large_results.csv"
+            }
+            default {
+                throw "Unknown mode: $Mode"
+            }
+        }
     }
 
     $ResolvedLogFile = if ([System.IO.Path]::IsPathRooted($LogFile)) {

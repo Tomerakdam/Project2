@@ -210,24 +210,6 @@ def save_family_line_plot(
     plt.close(fig)
 
 
-def save_runtime_scatter(df: pd.DataFrame, path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(9.4, 5.4))
-    style_axes(ax)
-    for family, part in df.groupby("family"):
-        ax.scatter(part["original_edges"], part["runtime_ms"], label=pretty_family_name(family), alpha=0.75, s=34)
-    set_report_title(
-        ax,
-        r"Runtime Scaling of Greedy Construction",
-        r"empirical cost as a function of input density $|E_G|$",
-    )
-    ax.set_xlabel(r"Original edge count $|E_G|$")
-    ax.set_ylabel(r"Runtime $\mathrm{ms}$")
-    ax.legend(fontsize=8, ncols=2, frameon=True, framealpha=0.92)
-    fig.tight_layout()
-    fig.savefig(path)
-    plt.close(fig)
-
-
 def save_runtime_vs_edges_large(df: pd.DataFrame, path: Path) -> None:
     part = df.copy()
     if part.empty:
@@ -401,7 +383,7 @@ def save_summary_markdown(df: pd.DataFrame, by_k: pd.DataFrame, by_family_k: pd.
     (output_dir / "summary.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def create_quantitative_plots(input_csv: Path, output_dir: Path) -> None:
+def create_quantitative_plots(input_csv: Path, output_dir: Path, plot_mode: str) -> None:
     df = pd.read_csv(input_csv)
     validate(df)
 
@@ -472,22 +454,7 @@ def create_quantitative_plots(input_csv: Path, output_dir: Path) -> None:
             max_planar_bound_ratio=("planar_size_bound_ratio", "max"),
         ).to_csv(output_dir / "summary_planar_bounds.csv", index=False)
 
-    save_line_plot(
-        by_k, "k", ["avg_spanner_edges"],
-        r"Average Spanner Size $|E_H|$",
-        r"Average edge count $\mathbb{E}[|E_H|]$",
-        output_dir / "avg_spanner_edges_by_k.png",
-        subtitle=r"Greedy weighted spanner $H_k \subseteq G$ with stretch bound $2k-1$",
-        labels={"avg_spanner_edges": r"$\mathbb{E}[|E_H|]$"},
-    )
-    save_line_plot(
-        by_k, "k", ["avg_edge_reduction_percent"],
-        r"Average Edge Reduction",
-        r"Reduction $100\cdot(1-|E_H|/|E_G|)$",
-        output_dir / "avg_edge_reduction_by_k.png",
-        subtitle=r"higher values mean stronger sparsification",
-        labels={"avg_edge_reduction_percent": r"$100(1-|E_H|/|E_G|)$"},
-    )
+    # Plots used in both structural and large report sections.
     save_line_plot(
         by_k, "k", ["avg_weight_over_mst"],
         r"Average Spanner Lightness",
@@ -496,6 +463,7 @@ def create_quantitative_plots(input_csv: Path, output_dir: Path) -> None:
         subtitle=r"total spanner weight relative to the minimum spanning tree",
         labels={"avg_weight_over_mst": r"$w(H)/w(\mathrm{MST})$"},
     )
+
     save_line_plot(
         by_k, "k", ["max_observed_stretch"],
         r"Maximum Observed Stretch",
@@ -504,48 +472,54 @@ def create_quantitative_plots(input_csv: Path, output_dir: Path) -> None:
         subtitle=r"empirical verification against the theoretical bound $2k-1$",
         labels={"max_observed_stretch": r"$\max\, d_H/d_G$"},
     )
-    save_line_plot(
-        by_k, "k", ["avg_general_bound_ratio"],
-        r"General Size-Bound Ratio",
-        r"Average ratio $|E_H|/n^{1+1/k}$",
-        output_dir / "avg_general_size_bound_ratio_by_k.png",
-        subtitle=r"normalizes measured size by the standard $n^{1+1/k}$ spanner size scale",
-        labels={"avg_general_bound_ratio": r"$|E_H|/n^{1+1/k}$"},
-    )
-    save_line_plot(
-        by_k, "k", ["avg_stretch_utilization"],
-        r"Stretch-Bound Utilization",
-        r"Average utilization $(\max d_H/d_G)/(2k-1)$",
-        output_dir / "avg_stretch_utilization_by_k.png",
-        subtitle=r"values below $1$ mean the measured stretch satisfies the guarantee",
-        labels={"avg_stretch_utilization": r"$(\max d_H/d_G)/(2k-1)$"},
-    )
-    save_family_line_plot(
-        df, "edge_reduction_percent",
-        r"Edge Reduction by Graph Family",
-        r"Average reduction $100\cdot(1-|E_H|/|E_G|)$",
-        output_dir / "family_edge_reduction_by_k.png",
-        subtitle=r"comparison across paths, grids, complete graphs, random graphs, and theta examples",
-    )
-    save_family_line_plot(
-        df, "weight_over_mst",
-        r"Lightness by Graph Family",
-        r"Average lightness $w(H)/w(\mathrm{MST})$",
-        output_dir / "family_weight_over_mst_by_k.png",
-        subtitle=r"shows which graph families force heavier spanners",
-    )
-    save_family_line_plot(
-        df, "general_size_bound_ratio",
-        r"General Size-Bound Ratio by Family",
-        r"Average ratio $|E_H|/n^{1+1/k}$",
-        output_dir / "family_general_size_bound_ratio_by_k.png",
-        subtitle=r"measured sparsity relative to the standard $n^{1+1/k}$ size scale",
-    )
-    save_runtime_scatter(df, output_dir / "runtime_vs_original_edges.png")
-    save_runtime_vs_edges_large(df, output_dir / "runtime_vs_original_edges_large.png")
-    save_edge_reduction_vs_density(df, output_dir / "edge_reduction_vs_density.png")
-    save_spanner_size_by_n_density(df, output_dir / "spanner_edges_vs_n_by_density_k3.png", target_k=3)
-    save_edge_reduction_heatmap(df, output_dir / "edge_reduction_heatmap_k_density.png")
+
+    if plot_mode == "structural":
+        save_line_plot(
+            by_k, "k", ["avg_edge_reduction_percent"],
+            r"Average Edge Reduction",
+            r"Reduction $100\cdot(1-|E_H|/|E_G|)$",
+            output_dir / "avg_edge_reduction_by_k.png",
+            subtitle=r"structural benchmark over paths, cycles, trees, complete graphs, grids, random graphs, and theta examples",
+            labels={"avg_edge_reduction_percent": r"$100(1-|E_H|/|E_G|)$"},
+        )
+
+        save_family_line_plot(
+            df, "edge_reduction_percent",
+            r"Edge Reduction by Graph Family",
+            r"Average reduction $100\cdot(1-|E_H|/|E_G|)$",
+            output_dir / "family_edge_reduction_by_k.png",
+            subtitle=r"structural benchmark across graph families",
+        )
+
+        save_family_line_plot(
+            df, "weight_over_mst",
+            r"Lightness by Graph Family",
+            r"Average lightness $w(H)/w(\mathrm{MST})$",
+            output_dir / "family_weight_over_mst_by_k.png",
+            subtitle=r"shows which graph families force heavier spanners",
+        )
+
+    elif plot_mode == "large":
+        save_edge_reduction_vs_density(
+            df,
+            output_dir / "edge_reduction_vs_density.png",
+        )
+
+        save_edge_reduction_heatmap(
+            df,
+            output_dir / "edge_reduction_heatmap_k_density.png",
+        )
+
+        save_runtime_vs_edges_large(
+            df,
+            output_dir / "runtime_vs_original_edges_large.png",
+        )
+
+        save_spanner_size_by_n_density(
+            df,
+            output_dir / "spanner_edges_vs_n_by_density_k3.png",
+            target_k=3,
+        )
 
     save_summary_markdown(df, by_k, by_family_k, output_dir)
 
@@ -789,16 +763,28 @@ def create_visual_examples(output_dir: Path) -> None:
 
 
 def main() -> int:
-    input_csv = Path(sys.argv[1]) if len(sys.argv) >= 2 else Path("results/results.csv")
-    output_dir = Path(sys.argv[2]) if len(sys.argv) >= 3 else Path("results/plots")
+    plot_mode = sys.argv[3].strip().lower() if len(sys.argv) >= 4 else "structural"
+    if plot_mode not in {"structural", "large"}:
+        raise ValueError("plot_mode must be either 'structural' or 'large'")
+
+    input_csv = Path(sys.argv[1]) if len(sys.argv) >= 2 else Path(
+        "results/large_results.csv" if plot_mode == "large" else "results/structural_results.csv"
+    )
+    output_dir = Path(sys.argv[2]) if len(sys.argv) >= 3 else Path(
+        "results/plots_large" if plot_mode == "large" else "results/plots_structural"
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     configure_matplotlib()
-    create_quantitative_plots(input_csv, output_dir)
-    create_visual_examples(output_dir)
+    create_quantitative_plots(input_csv, output_dir, plot_mode)
 
-    print(f"Wrote quantitative plots, summaries, and visual examples to: {output_dir.resolve()}")
-    print(f"Visual examples are in: {(output_dir / 'visual_examples').resolve()}")
+    if plot_mode == "structural":
+        create_visual_examples(output_dir)
+        print(f"Wrote quantitative plots, summaries, and visual examples to: {output_dir.resolve()}")
+        print(f"Visual examples are in: {(output_dir / 'visual_examples').resolve()}")
+    else:
+        print(f"Wrote quantitative plots and summaries to: {output_dir.resolve()}")
+
     return 0
 
 
